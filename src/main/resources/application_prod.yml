@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: springsecuritysection1
+  config:
+    activate:
+      on-profile: prod
+  security:
+      user:
+        name: ${SECURITY_USERNAME:dinhnguyendev}
+        password: ${SECURITY_PASSWORD:123456}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:springsecurity}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:123456}
+    driverClassName: org.postgresql.Driver
+
+logging:
+  level:
+    org:
+      springframework:
+        ## It means when the debug mode will show the log with type is TRACE
+        security: ${SPRING_SECURITY_LOG_LEVEL:TRACE}
+  pattern:
+    console : ${LOGPATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
