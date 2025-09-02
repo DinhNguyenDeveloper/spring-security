@@ -29,7 +29,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.nonNull(authentication)) {
+            if (Objects.nonNull(authentication)) {
             Environment environment = getEnvironment();
             String secret = environment.getProperty(ApplicationConstants.JWT_SECRET_KEY,
                     ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);

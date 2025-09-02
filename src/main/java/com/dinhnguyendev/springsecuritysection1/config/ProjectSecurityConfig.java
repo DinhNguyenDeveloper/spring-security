@@ -7,12 +7,16 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -51,7 +55,10 @@ public class  ProjectSecurityConfig {
                 }))
 //                .sessionManagement(smc -> smc.invalidSessionUrl("/InvalidSession"))
 //                .redirectToHttps(withDefaults())
-                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler))
+                .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers("apiLogin")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFiler(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new JWTTokenGeneratorFilter() , BasicAuthenticationFilter.class)
@@ -63,8 +70,9 @@ public class  ProjectSecurityConfig {
 
                     .requestMatchers("/cards").hasRole("ADMIN")
                 .requestMatchers("/loan").hasRole("USER")
+                .requestMatchers("/user").hasRole("USER")
                 .requestMatchers("/balance").hasAnyRole("USER", "ADMIN")
-                .requestMatchers( "contact", "welcome", "/register").permitAll()
+                .requestMatchers( "/register", "/apiLogin").permitAll()
         );
         http.formLogin(withDefaults());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
@@ -81,6 +89,17 @@ public class  ProjectSecurityConfig {
 //
 //        return new JdbcUserDetailsManager(dataSource);
 //    }
+
+    // If you want to custom authentication via Rest API intense of Form login => you have to Override (publish) a custom AuthenticationManager
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+        DinhNguyenDevUsernamePwdAuthenticationProvider authenticationProvider = new DinhNguyenDevUsernamePwdAuthenticationProvider(
+                userDetailsService, passwordEncoder);
+        ProviderManager providerManager = new ProviderManager(authenticationProvider);
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        return providerManager;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
